@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Math Sandbox Emulator</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --danger: #dc2626;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #334155;
+            --border: #e2e8f0;
+            --principal-color: #3b82f6;
+            --interest-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .badge {
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 650px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .prefix {
+            position: absolute;
+            left: 1rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.2rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--primary);
+            outline: none;
+        }
+
+        select {
+            padding-left: 1rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .rate-box {
+            background: #fafafa;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .rate-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: #fff5f5;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #fee2e2;
+        }
+
+        @media (max-width: 600px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #7f1d1d;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-value.total-cost {
+            color: var(--danger);
+        }
+
+        /* Chart Styles */
+        .chart-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .chart-container {
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📊 Credit Card Interest Sandbox</h1>
+        <div class="subtitle">Visualizing compounding balances at regulated credit card limits in Philippine Pesos (PHP)</div>
+
+        <div class="grid">
+            <div class="input-group">
+                <label for="loanAmountNum">Financing Amount (Principal)</label>
+                <div class="input-wrapper">
+                    <span class="prefix">₱</span>
+                    <input type="number" id="loanAmountNum" value="5000" min="1000" max="200000" step="1000">
+                </div>
+                <input type="range" id="loanAmountSlider" value="5000" min="1000" max="200000" step="1000">
+            </div>
+
+            <div class="input-group">
+                <label for="loanTerm">Repayment Horizon (Max 24 Months)</label>
+                <select id="loanTerm">
+                    <option value="3">3 Months</option>
+                    <option value="6">6 Months</option>
+                    <option value="12" selected>12 Months (1 Year)</option>
+                    <option value="18">18 Months</option>
+                    <option value="24">24 Months (2 Years)</option>
+                </select>
+                
+                <div class="rate-box">
+                    <div class="rate-row">
+                        <strong>Monthly Rate:</strong>
+                        <span>3.00% / mo</span>
+                    </div>
+                    <div class="rate-row">
+                        <strong>Annual Rate Equivalent:</strong>
+                        <span style="color: var(--danger); font-weight: 700;">36.00% APR</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Fixed Monthly Payment</div>
+                <div class="metric-value" id="monthlyPaymentDisplay">₱0.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Debt Overhead</div>
+                <div class="metric-value" id="totalInterestDisplay">₱0.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Amount Returned</div>
+                <div class="metric-value total-cost" id="totalPaybackDisplay">₱0.00</div>
+            </div>
+        </div>
+
+        <!-- Dynamic Bar Graph Section -->
+        <div class="chart-section">
+            <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary);">Monthly Payment Component Evolution</h2>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--principal-color);"></div>
+                    <span>Principal Component (Pays down Debt)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--interest-color);"></div>
+                    <span>Interest Component (Bank Profit)</span>
+                </div>
+            </div>
+            <div class="chart-container" id="chartWrapper">
+                <!-- SVG injected programmatically via javascript code execution -->
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary);">Amortization Schedule</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Payment Amount</th>
+                        <th>Principal Paydown</th>
+                        <th>Interest Fee</th>
+                        <th>Outstanding Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerBody">
+                    <!-- Dynamic rendering engine target -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const amountNum = document.getElementById('loanAmountNum');
+        const amountSlider = document.getElementById('loanAmountSlider');
+        const termSelect = document.getElementById('loanTerm');
+        const monthlyPaymentDisplay = document.getElementById('monthlyPaymentDisplay');
+        const totalInterestDisplay = document.getElementById('totalInterestDisplay');
+        const totalPaybackDisplay = document.getElementById('totalPaybackDisplay');
+        const ledgerBody = document.getElementById('ledgerBody');
+        const chartWrapper = document.getElementById('chartWrapper');
+        const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
+function formatPHP(val) {
+return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+// Synchronize numeric and range control modules safely
+function syncAmountInput(e) {
+let val = parseFloat(e.target.value) || 0;
+if (val > 200000) val = 200000;
+amountNum.value = val;
+amountSlider.value = val;
+calculateEngine();
+}
+amountNum.addEventListener('input', syncAmountInput);
+amountSlider.addEventListener('input', syncAmountInput);
+termSelect.addEventListener('change', calculateEngine);
+function calculateEngine() {
+const principal = parseFloat(amountNum.value) || 0;
+const totalMonths = parseInt(termSelect.value);
+let monthlyPayment = 0;
+if (principal > 0) {
+// Compound Amortization formula logic mapping standard credit balances
+monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTH旅行_RATE = 0, totalMonths) - 1);
+monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
+}
+let balance = principal;
+let totalInterest = 0;
+let scheduleData = [];
+ledgerBody.innerHTML = '';
+for (let i = 1; i <= totalMonths; i++) {
+const interestComp = balance * MONTHLY_RATE;
+let principalComp = monthlyPayment - interestComp;
+if (i === totalMonths) {
+principalComp = balance;
+monthlyPayment = principalComp + interestComp;
+}
+balance -= principalComp;
+totalInterest += interestComp;
+scheduleData.push({
+month: i,
+payment: monthlyPayment,
+principal: principalComp,
+interest: interestComp,
+remaining: Math.max(0, balance)
+});
+const tr = document.createElement('tr');
+tr.innerHTML = `
+Month ${i}
+${formatPHP(monthlyPayment)}
+${formatPHP(principalComp)}
+${formatPHP(interestComp)}
+${formatPHP(Math.max(0, balance))}
+`;
+ledgerBody.appendChild(tr);
+}
+// Display Top level dashboard KPIs
+monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
+totalInterestDisplay.innerText = formatPHP(totalInterest);
+totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
+renderBarChart(scheduleData);
+}
+function renderBarChart(data) {
+if (data.length === 0) return;
+const svgWidth = 750;
+const svgHeight = 220;
+const paddingLeft = 40;
+const paddingRight = 20;
+const paddingTop = 20;
+const paddingBottom = 30;
+const graphWidth = svgWidth - paddingLeft - paddingRight;
+const graphHeight = svgHeight - paddingTop - paddingBottom;
+const maxPayment = Math.max(...data.map(d => d.payment));
+let barWidth = (graphWidth / data.length) * 0.65;
+let barSpacing = (graphWidth / data.length) * 0.35;
+let svgHTML = <svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">;
+// Render horizontal matrix gridlines
+for(let step = 0; step <= 4; step++) {
+let yPos = paddingTop + (graphHeight * step / 4);
+let valueLabel = maxPayment - (maxPayment * step / 4);
+svgHTML += `
+`;
+}
+// Build structural bars
+data.forEach((d, index) => {
+const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
+// Height scaling mechanics
+const totalBarHeight = (d.payment / maxPayment) * graphHeight;
+const interestHeight = (d.interest / d.payment) * totalBarHeight;
+const principalHeight = totalBarHeight - interestHeight;
+const interestY = paddingTop + graphHeight - interestHeight;
+const principalY = interestY - principalHeight;
+svgHTML += `
+`;
+});
+svgHTML += </svg>;
+chartWrapper.innerHTML = svgHTML;
+}
+// Run calculation sequence on launch
+calculateEngine();
