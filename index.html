@@ -330,93 +330,93 @@
         const ledgerBody = document.getElementById('ledgerBody');
         const chartWrapper = document.getElementById('chartWrapper');
 
-const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
-function formatPHP(val) {
-return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-function syncAmountInput(e) {
-let val = parseFloat(e.target.value) || 0;
-if (val > 200000) val = 200000;
-amountNum.value = val;
-amountSlider.value = val;
-calculateEngine();
-}
-amountNum.addEventListener('input', syncAmountInput);
-amountSlider.addEventListener('input', syncAmountInput);
-termSelect.addEventListener('change', calculateEngine);
-function calculateEngine() {
-const principal = parseFloat(amountNum.value) || 0;
-const totalMonths = parseInt(termSelect.value);
-let monthlyPayment = 0;
-if (principal > 0) {
-monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
-}
-let balance = principal;
-let totalInterest = 0;
-let scheduleData = [];
-ledgerBody.innerHTML = '';
-for (let i = 1; i <= totalMonths; i++) {
-const interestComp = balance * MONTHLY_RATE;
-let principalComp = monthlyPayment - interestComp;
-if (i === totalMonths) {
-principalComp = balance;
-monthlyPayment = principalComp + interestComp;
-}
-balance -= principalComp;
-totalInterest += interestComp;
-scheduleData.push({
-month: i,
-payment: monthlyPayment,
-principal: principalComp,
-interest: interestComp,
-remaining: Math.max(0, balance)
-});
-const tr = document.createElement('tr');
-tr.innerHTML = `
-Month ${i}
-${formatPHP(monthlyPayment)}
-${formatPHP(principalComp)}
-${formatPHP(interestComp)}
-${formatPHP(Math.max(0, balance))}
-`;
-ledgerBody.appendChild(tr);
-}
-monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
-totalInterestDisplay.innerText = formatPHP(totalInterest);
-totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
-renderBarChart(scheduleData);
-}
-function renderBarChart(data) {
-if (data.length === 0) return;
-const svgWidth = 750;
-const svgHeight = 220;
-const paddingLeft = 60;
-const paddingRight = 20;
-const paddingTop = 20;
-const paddingBottom = 30;
-const graphWidth = svgWidth - paddingLeft - paddingRight;
-const graphHeight = svgHeight - paddingTop - paddingBottom;
-const maxPayment = Math.max(...data.map(d => d.payment));
-let barWidth = (graphWidth / data.length) * 0.65;
-let barSpacing = (graphWidth / data.length) * 0.35;
-let svgHTML = <svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">;
-for(let step = 0; step <= 4; step++) {
-let yPos = paddingTop + (graphHeight * step / 4);
-let valueLabel = maxPayment - (maxPayment * step / 4);
-svgHTML += `
-`;
-}
-data.forEach((d, index) => {
-const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
-const totalBarHeight = (d.payment / maxPayment) * graphHeight;
-const interestHeight = (d.interest / d.payment) * totalBarHeight;
-const principalHeight = totalBarHeight - interestHeight;
-const interestY = paddingTop + graphHeight - interestHeight;
-const principalY = interestY - principalHeight;
-svgHTML += `
-`;
-});
-svgHTML += </svg>;
-chartWrapper.innerHTML = svgHTML;
-}
-calculateEngine();
+        const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
+        function formatPHP(val) {
+        return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function syncAmountInput(e) {
+        let val = parseFloat(e.target.value) || 0;
+        if (val > 200000) val = 200000;
+        amountNum.value = val;
+        amountSlider.value = val;
+        calculateEngine();
+        }
+        amountNum.addEventListener('input', syncAmountInput);
+        amountSlider.addEventListener('input', syncAmountInput);
+        termSelect.addEventListener('change', calculateEngine);
+        function calculateEngine() {
+        const principal = parseFloat(amountNum.value) || 0;
+        const totalMonths = parseInt(termSelect.value);
+        let monthlyPayment = 0;
+        if (principal > 0) {
+        monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
+        }
+        let balance = principal;
+        let totalInterest = 0;
+        let scheduleData = [];
+        ledgerBody.innerHTML = '';
+        for (let i = 1; i <= totalMonths; i++) {
+        const interestComp = balance * MONTHLY_RATE;
+        let principalComp = monthlyPayment - interestComp;
+        if (i === totalMonths) {
+        principalComp = balance;
+        monthlyPayment = principalComp + interestComp;
+        }
+        balance -= principalComp;
+        totalInterest += interestComp;
+        scheduleData.push({
+        month: i,
+        payment: monthlyPayment,
+        principal: principalComp,
+        interest: interestComp,
+        remaining: Math.max(0, balance)
+        });
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        Month ${i}
+        ${formatPHP(monthlyPayment)}
+        ${formatPHP(principalComp)}
+        ${formatPHP(interestComp)}
+        ${formatPHP(Math.max(0, balance))}
+        `;
+        ledgerBody.appendChild(tr);
+        }
+        monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
+        totalInterestDisplay.innerText = formatPHP(totalInterest);
+        totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
+        renderBarChart(scheduleData);
+        }
+        function renderBarChart(data) {
+        if (data.length === 0) return;
+        const svgWidth = 750;
+        const svgHeight = 220;
+        const paddingLeft = 60;
+        const paddingRight = 20;
+        const paddingTop = 20;
+        const paddingBottom = 30;
+        const graphWidth = svgWidth - paddingLeft - paddingRight;
+        const graphHeight = svgHeight - paddingTop - paddingBottom;
+        const maxPayment = Math.max(...data.map(d => d.payment));
+        let barWidth = (graphWidth / data.length) * 0.65;
+        let barSpacing = (graphWidth / data.length) * 0.35;
+        let svgHTML = <svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">;
+        for(let step = 0; step <= 4; step++) {
+        let yPos = paddingTop + (graphHeight * step / 4);
+        let valueLabel = maxPayment - (maxPayment * step / 4);
+        svgHTML += `
+        `;
+        }
+        data.forEach((d, index) => {
+        const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
+        const totalBarHeight = (d.payment / maxPayment) * graphHeight;
+        const interestHeight = (d.interest / d.payment) * totalBarHeight;
+        const principalHeight = totalBarHeight - interestHeight;
+        const interestY = paddingTop + graphHeight - interestHeight;
+        const principalY = interestY - principalHeight;
+        svgHTML += `
+        `;
+        });
+        svgHTML += </svg>;
+        chartWrapper.innerHTML = svgHTML;
+        }
+        calculateEngine();
