@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Card Math Sandbox Emulator</title>
+    <title>Finance Simulator Math Sandbox Emulator</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -232,7 +232,7 @@
 <body>
 
     <div class="container">
-        <h1>📊 Credit Card Interest Sandbox</h1>
+        <h1>📊 Finance Simulator - Interest Sandbox</h1>
         <div class="subtitle">Visualizing compounding balances at regulated credit card limits in Philippine Pesos (PHP)</div>
 
         <div class="grid">
@@ -331,92 +331,126 @@
         const chartWrapper = document.getElementById('chartWrapper');
 
         const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
+        
         function formatPHP(val) {
-        return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
+        
         function syncAmountInput(e) {
-        let val = parseFloat(e.target.value) || 0;
-        if (val > 200000) val = 200000;
-        amountNum.value = val;
-        amountSlider.value = val;
-        calculateEngine();
+            let val = parseFloat(e.target.value) || 0;
+            if (val > 200000) val = 200000;
+            amountNum.value = val;
+            amountSlider.value = val;
+            calculateEngine();
         }
+        
         amountNum.addEventListener('input', syncAmountInput);
         amountSlider.addEventListener('input', syncAmountInput);
         termSelect.addEventListener('change', calculateEngine);
+        
         function calculateEngine() {
-        const principal = parseFloat(amountNum.value) || 0;
-        const totalMonths = parseInt(termSelect.value);
-        let monthlyPayment = 0;
-        if (principal > 0) {
-        monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
+            const principal = parseFloat(amountNum.value) || 0;
+            const totalMonths = parseInt(termSelect.value);
+            let monthlyPayment = 0;
+            
+            if (principal > 0) {
+                monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
+            }
+            
+            let balance = principal;
+            let totalInterest = 0;
+            let scheduleData = [];
+            ledgerBody.innerHTML = '';
+            
+            for (let i = 1; i <= totalMonths; i++) {
+                const interestComp = balance * MONTHLY_RATE;
+                let principalComp = monthlyPayment - interestComp;
+                
+                if (i === totalMonths) {
+                    principalComp = balance;
+                    monthlyPayment = principalComp + interestComp;
+                }
+                
+                balance -= principalComp;
+                totalInterest += interestComp;
+                
+                scheduleData.push({
+                    month: i,
+                    payment: monthlyPayment,
+                    principal: principalComp,
+                    interest: interestComp,
+                    remaining: Math.max(0, balance)
+                });
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Month ${i}</td>
+                    <td>${formatPHP(monthlyPayment)}</td>
+                    <td>${formatPHP(principalComp)}</td>
+                    <td>${formatPHP(interestComp)}</td>
+                    <td>${formatPHP(Math.max(0, balance))}</td>
+                `;
+                ledgerBody.appendChild(tr);
+            }
+            
+            monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
+            totalInterestDisplay.innerText = formatPHP(totalInterest);
+            totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
+            
+            renderBarChart(scheduleData);
         }
-        let balance = principal;
-        let totalInterest = 0;
-        let scheduleData = [];
-        ledgerBody.innerHTML = '';
-        for (let i = 1; i <= totalMonths; i++) {
-        const interestComp = balance * MONTHLY_RATE;
-        let principalComp = monthlyPayment - interestComp;
-        if (i === totalMonths) {
-        principalComp = balance;
-        monthlyPayment = principalComp + interestComp;
-        }
-        balance -= principalComp;
-        totalInterest += interestComp;
-        scheduleData.push({
-        month: i,
-        payment: monthlyPayment,
-        principal: principalComp,
-        interest: interestComp,
-        remaining: Math.max(0, balance)
-        });
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-        Month ${i}
-        ${formatPHP(monthlyPayment)}
-        ${formatPHP(principalComp)}
-        ${formatPHP(interestComp)}
-        ${formatPHP(Math.max(0, balance))}
-        `;
-        ledgerBody.appendChild(tr);
-        }
-        monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
-        totalInterestDisplay.innerText = formatPHP(totalInterest);
-        totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
-        renderBarChart(scheduleData);
-        }
+        
         function renderBarChart(data) {
-        if (data.length === 0) return;
-        const svgWidth = 750;
-        const svgHeight = 220;
-        const paddingLeft = 60;
-        const paddingRight = 20;
-        const paddingTop = 20;
-        const paddingBottom = 30;
-        const graphWidth = svgWidth - paddingLeft - paddingRight;
-        const graphHeight = svgHeight - paddingTop - paddingBottom;
-        const maxPayment = Math.max(...data.map(d => d.payment));
-        let barWidth = (graphWidth / data.length) * 0.65;
-        let barSpacing = (graphWidth / data.length) * 0.35;
-        let svgHTML = <svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">;
-        for(let step = 0; step <= 4; step++) {
-        let yPos = paddingTop + (graphHeight * step / 4);
-        let valueLabel = maxPayment - (maxPayment * step / 4);
-        svgHTML += `
-        `;
+            if (data.length === 0) return;
+            const svgWidth = 750;
+            const svgHeight = 220;
+            const paddingLeft = 60;
+            const paddingRight = 20;
+            const paddingTop = 20;
+            const paddingBottom = 30;
+            const graphWidth = svgWidth - paddingLeft - paddingRight;
+            const graphHeight = svgHeight - paddingTop - paddingBottom;
+            const maxPayment = Math.max(...data.map(d => d.payment));
+            
+            let barWidth = (graphWidth / data.length) * 0.65;
+            let barSpacing = (graphWidth / data.length) * 0.35;
+            
+            let svgHTML = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">`;
+            
+            // Draw horizontal grid lines and Y-axis labels
+            for(let step = 0; step <= 4; step++) {
+                let yPos = paddingTop + (graphHeight * step / 4);
+                let valueLabel = maxPayment - (maxPayment * step / 4);
+                svgHTML += `
+                    <line x1="${paddingLeft}" y1="${yPos}" x2="${svgWidth - paddingRight}" y2="${yPos}" stroke="#e2e8f0" stroke-width="1" />
+                    <text x="${paddingLeft - 10}" y="${yPos + 4}" fill="#64748b" font-size="10" text-anchor="end">₱${Math.round(valueLabel).toLocaleString()}</text>
+                `;
+            }
+            
+            // Draw stacked bars and X-axis labels
+            data.forEach((d, index) => {
+                const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
+                const totalBarHeight = (d.payment / maxPayment) * graphHeight;
+                const interestHeight = (d.interest / d.payment) * totalBarHeight;
+                const principalHeight = totalBarHeight - interestHeight;
+                const interestY = paddingTop + graphHeight - interestHeight;
+                const principalY = interestY - principalHeight;
+                
+                svgHTML += `
+                    <!-- Principal Component (Bottom) -->
+                    <rect x="${x}" y="${principalY}" width="${barWidth}" height="${principalHeight}" fill="var(--principal-color)" rx="2" />
+                    <!-- Interest Component (Top) -->
+                    <rect x="${x}" y="${interestY}" width="${barWidth}" height="${interestHeight}" fill="var(--interest-color)" rx="2" />
+                    <!-- Month Label -->
+                    <text x="${x + barWidth / 2}" y="${svgHeight - 10}" fill="#64748b" font-size="10" text-anchor="middle">M${d.month}</text>
+                `;
+            });
+            
+            svgHTML += `</svg>`;
+            chartWrapper.innerHTML = svgHTML;
         }
-        data.forEach((d, index) => {
-        const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
-        const totalBarHeight = (d.payment / maxPayment) * graphHeight;
-        const interestHeight = (d.interest / d.payment) * totalBarHeight;
-        const principalHeight = totalBarHeight - interestHeight;
-        const interestY = paddingTop + graphHeight - interestHeight;
-        const principalY = interestY - principalHeight;
-        svgHTML += `
-        `;
-        });
-        svgHTML += </svg>;
-        chartWrapper.innerHTML = svgHTML;
-        }
+        
         calculateEngine();
+    </script>
+</body>
+</html>
