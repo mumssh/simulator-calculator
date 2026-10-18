@@ -54,17 +54,6 @@
             margin-bottom: 2rem;
         }
 
-        .badge {
-            background: #fee2e2;
-            color: #991b1b;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            display: inline-block;
-            margin-top: 0.25rem;
-        }
-
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -179,7 +168,6 @@
             color: var(--danger);
         }
 
-        /* Chart Styles */
         .chart-section {
             margin-bottom: 2.5rem;
         }
@@ -212,7 +200,6 @@
             padding: 1rem;
         }
 
-        /* Table Styles */
         .table-container {
             overflow-x: auto;
         }
@@ -296,7 +283,6 @@
             </div>
         </div>
 
-        <!-- Dynamic Bar Graph Section -->
         <div class="chart-section">
             <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary);">Monthly Payment Component Evolution</h2>
             <div class="chart-legend">
@@ -310,7 +296,7 @@
                 </div>
             </div>
             <div class="chart-container" id="chartWrapper">
-                <!-- SVG injected programmatically via javascript code execution -->
+                <!-- SVG injected programmatically via javascript -->
             </div>
         </div>
 
@@ -337,16 +323,17 @@
         const amountNum = document.getElementById('loanAmountNum');
         const amountSlider = document.getElementById('loanAmountSlider');
         const termSelect = document.getElementById('loanTerm');
+        
         const monthlyPaymentDisplay = document.getElementById('monthlyPaymentDisplay');
         const totalInterestDisplay = document.getElementById('totalInterestDisplay');
         const totalPaybackDisplay = document.getElementById('totalPaybackDisplay');
         const ledgerBody = document.getElementById('ledgerBody');
         const chartWrapper = document.getElementById('chartWrapper');
-        const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
+
+const MONTHLY_RATE = 0.03; // Fixed BSP Credit Card Regulation Rate Cap
 function formatPHP(val) {
 return '₱' + val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-// Synchronize numeric and range control modules safely
 function syncAmountInput(e) {
 let val = parseFloat(e.target.value) || 0;
 if (val > 200000) val = 200000;
@@ -362,8 +349,6 @@ const principal = parseFloat(amountNum.value) || 0;
 const totalMonths = parseInt(termSelect.value);
 let monthlyPayment = 0;
 if (principal > 0) {
-// Compound Amortization formula logic mapping standard credit balances
-monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTH旅行_RATE = 0, totalMonths) - 1);
 monthlyPayment = (principal * MONTHLY_RATE * Math.pow(1 + MONTHLY_RATE, totalMonths)) / (Math.pow(1 + MONTHLY_RATE, totalMonths) - 1);
 }
 let balance = principal;
@@ -396,7 +381,6 @@ ${formatPHP(Math.max(0, balance))}
 `;
 ledgerBody.appendChild(tr);
 }
-// Display Top level dashboard KPIs
 monthlyPaymentDisplay.innerText = formatPHP(monthlyPayment);
 totalInterestDisplay.innerText = formatPHP(totalInterest);
 totalPaybackDisplay.innerText = formatPHP(principal + totalInterest);
@@ -406,7 +390,7 @@ function renderBarChart(data) {
 if (data.length === 0) return;
 const svgWidth = 750;
 const svgHeight = 220;
-const paddingLeft = 40;
+const paddingLeft = 60;
 const paddingRight = 20;
 const paddingTop = 20;
 const paddingBottom = 30;
@@ -416,17 +400,14 @@ const maxPayment = Math.max(...data.map(d => d.payment));
 let barWidth = (graphWidth / data.length) * 0.65;
 let barSpacing = (graphWidth / data.length) * 0.35;
 let svgHTML = <svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%">;
-// Render horizontal matrix gridlines
 for(let step = 0; step <= 4; step++) {
 let yPos = paddingTop + (graphHeight * step / 4);
 let valueLabel = maxPayment - (maxPayment * step / 4);
 svgHTML += `
 `;
 }
-// Build structural bars
 data.forEach((d, index) => {
 const x = paddingLeft + (index * (barWidth + barSpacing)) + (barSpacing / 2);
-// Height scaling mechanics
 const totalBarHeight = (d.payment / maxPayment) * graphHeight;
 const interestHeight = (d.interest / d.payment) * totalBarHeight;
 const principalHeight = totalBarHeight - interestHeight;
@@ -438,5 +419,4 @@ svgHTML += `
 svgHTML += </svg>;
 chartWrapper.innerHTML = svgHTML;
 }
-// Run calculation sequence on launch
 calculateEngine();
